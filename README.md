@@ -96,3 +96,107 @@ seleccion_columnas = [
 ]
 
 data_cluster = data[seleccion_columnas]
+```
+
+### 3.4. Selección del número de clusters
+
+Uso de KElbowVisualizer (yellowbrick) con k entre 2 y 10 para identificar el “codo” en la curva de distorsión.
+
+A partir del análisis, se selecciona k = 4 clusters.
+
+### 3.5. Entrenamieto del modelo de clustering
+
+````python
+from sklearn.cluster import KMeans
+
+kmeans = KMeans(n_clusters=4, random_state=42)
+clusters = kmeans.fit_predict(data_cluster)
+data_cluster['Cluster'] = clusters
+````
+
+### 3.6. Perfilado de los clusters
+Se calculan estadísticas descriptivas por cluster (media de TotalAmount, ingresos, hijos, etc.) para interpretar segmentos de negocio.
+
+A partir de los promedios obtenidos, los clusters pueden interpretarse de forma simplificada como:
+
+- **Cluster 2**– “Clientes premium de alto valor”
+
+Mayor importe medio acumulado (TotalAmount más alto).
+
+Niveles de ingresos (YearlyIncome_Num) y educación más elevados.
+
+Todos han comprado bicicleta (BikePurchase = 1).
+
+- **Cluster 1** – “Clientes de alto valor”
+
+Gasto medio elevado, pero por debajo del cluster premium.
+
+Ingresos y educación por encima de la media.
+
+Todos son compradores de bicicleta.
+
+- **Cluster 0** – “Clientes de valor medio”
+
+Gasto moderado.
+
+Todos han comprado bicicleta.
+
+Perfil sociodemográfico intermedio.
+
+- **Cluster 3** – “Clientes de baja implicación / no compradores de bicicleta”
+
+Representan la mayoría de la base (más de la mitad de los clientes).
+
+Importe medio muy bajo.
+
+Solo una pequeña parte ha comprado bicicleta (BikePurchase ≈ 0,13).
+
+Niveles de ingresos y educación algo menores que los clusters de alto valor.
+
+
+### 3.7. Evaluación del modelo
+
+````python
+from sklearn.metrics import silhouette_score
+
+silhouette_avg = silhouette_score(
+    data_cluster[seleccion_columnas],
+    data_cluster['Cluster']
+)
+print(f"Puntuación media del coeficiente de Silhouette: {silhouette_avg:.3f}")
+````
+La puntuación obtenida es aproximadamente 0,75, lo que indica:
+
+Buena separación entre clusters.
+
+Cohesión interna elevada dentro de cada cluster.
+
+Segmentación útil para extraer insights de negocio y diseñar estrategias diferenciadas.
+
+---
+
+## 4. Conclusiones de negocio
+
+A partir del EDA y de la segmentación con k-means se pueden extraer varias conclusiones:
+
+- **La probabilidad de compra de bicicleta y el importe total gastado** están fuertemente relacionados.
+
+- Los clientes con **mayor nivel de ingresos y educación** tienden a concentrarse en los clusters de mayor valor.
+
+- Existe un segmento muy numeroso de clientes con **baja implicación** (cluster 3), donde el gasto es residual y la compra de bicicleta es poco frecuente.
+
+Ejemplos de líneas de acción:
+
+- **Clusters 1 y 2 (alto valor / premium)**
+
+Diseñar programas de fidelización específicos y ofertas cross-sell/upsell (accesorios, componentes premium).
+
+Comunicación personalizada basada en su histórico de compras.
+
+- **Cluster 0 (valor medio)**
+
+Campañas que incentiven un incremento del ticket medio (packs, mantenimiento, upgrades).
+
+-**Cluster 3 (baja implicación)**
+
+Estrategias de activación: campañas de onboarding, descuentos de primera compra, contenidos educativos sobre bicicletas y movilidad.
